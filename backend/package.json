@@ -8,9 +8,10 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "seed:zoho": "tsx ../scripts/seed-zoho.ts"
+    "seed:zoho": "tsx scripts/seed-zoho.ts",
+    "zoho:refresh-token": "tsx scripts/zoho-get-refresh-token.ts"
   },
   "dependencies": {
     "axios": "^1.7.9",

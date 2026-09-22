@@ -1,2 +1,5 @@
-// Phase 2: zohoClient.ts (axios + OAuth token mgmt), leadsService.ts, dealsService.ts, casesService.ts.
-export {};
+export { getZohoClient } from "./zohoClient";
+export { createLead } from "./leadsService";
+export { searchDeal, updateDealFollowUp, searchBooking } from "./dealsService";
+export { createCase } from "./casesService";
+export { findContactByPhone, getDealsForContact } from "./contactsService";

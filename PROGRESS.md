@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 10% (Phase 1 complete)**
+**Overall completion: 30% (Phases 1–2 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -13,11 +13,11 @@ phase's weight; all phases sum to 100%.
 - [x] 1.3 Env/config setup (`.env.example`, config loader) — 2%
 
 ## Phase 2 — Zoho CRM integration (OAuth + CRUD wrappers + mock data) (20%)
-- [ ] 2.1 OAuth 2.0 Self Client setup + access-token refresh service — 6%
-- [ ] 2.2 Leads module CRUD wrapper — 4%
-- [ ] 2.3 Deals/Potentials module CRUD wrapper — 4%
-- [ ] 2.4 Cases/Service Tickets module CRUD wrapper — 4%
-- [ ] 2.5 Seed script (1 Lead, 1 Deal, 1 Booking) — 2%
+- [x] 2.1 OAuth 2.0 Self Client setup + access-token refresh service — 6%
+- [x] 2.2 Leads module CRUD wrapper — 4%
+- [x] 2.3 Deals/Potentials module CRUD wrapper — 4%
+- [x] 2.4 Cases/Service Tickets module CRUD wrapper — 4%
+- [x] 2.5 Seed script (1 Lead, 1 Deal, 1 Booking) — 2%
 
 ## Phase 3 — LLM agent core (intent classification + tool calling) (25%)
 - [ ] 3.1 Groq SDK integration + system prompt design — 5%
@@ -50,8 +50,24 @@ phase's weight; all phases sum to 100%.
 
 ---
 
-### Open questions (still relevant for Phase 2)
-See §10 of `ARCHITECTURE.md` for the full list with proposed defaults —
-all accepted as-is for now. Still needed before Phase 2.1 (OAuth): do you
-have an existing Zoho CRM sandbox/dev account with API console access
-already, or should setup assume a fresh trial org?
+### Notes from Phase 2
+- **Deviation from the Phase 1 folder tree:** `scripts/seed-zoho.ts` and
+  the new `scripts/zoho-get-refresh-token.ts` live under `backend/scripts/`,
+  not a top-level `scripts/`. Reason: they import backend service code and
+  need to resolve `backend/node_modules` (axios, dotenv, tsx) — Node's
+  module resolution walks up from the importing file, and a sibling
+  top-level `scripts/` isn't an ancestor of `backend/node_modules`, so it
+  would need its own separate `npm install` of the same packages. Nesting
+  them avoids that duplication.
+- **Deviation from ARCHITECTURE.md §4's tool list:** added a small
+  `contactsService.ts` (not in the original file list) so `find_contact`
+  has one home shared by both `dealsService` and `casesService`, instead
+  of duplicating the Contacts lookup in each.
+- `docs/ZOHO_FIELDS.md` now has the concrete API-name mapping (which
+  fields are standard vs. custom you need to create) — was previously just
+  referenced, not written.
+- Still open: do you have an existing Zoho CRM sandbox/dev account with
+  API console access, or should setup assume a fresh trial org? Not
+  blocking further phases (agent core/workflows don't need live Zoho
+  credentials to build against), but needed before you can run
+  `npm run zoho:refresh-token` / `npm run seed:zoho` for real.
