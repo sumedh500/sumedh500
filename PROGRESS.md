@@ -185,3 +185,23 @@ phase's weight; all phases sum to 100%.
     assistant bubble, stage badge updating to e.g. "New Lead") — that
     needs your `GROQ_API_KEY`/Zoho credentials, same as Phases 3–4's full
     live tests.
+
+- **Bug found via your first live test:** assistant replies contain
+  Markdown (bold, GFM tables, literal `<br>` tags for multi-line cells —
+  the Bolero spec table you sent a screenshot of) and `MessageBubble` was
+  rendering it as a plain `<p>`, so the raw syntax showed up as literal
+  text. Fixed by rendering assistant messages (only — user messages stay
+  plain text) through `react-markdown` + `remark-gfm`, added as new
+  frontend dependencies. Deliberately did **not** enable raw-HTML
+  rendering to support the `<br>` tags (that would open up arbitrary
+  HTML/script rendering from LLM- or CRM-sourced content) — instead
+  `normalizeContent()` converts `<br>` variants to real Markdown line
+  breaks before rendering, so the same visual result is achieved without
+  that risk. You chose this over the "force plain text via system prompt"
+  alternative when asked, since tabular spec data (like the Bolero
+  example) genuinely reads better as a real table.
+  - **Live-verified**: seeded the exact table/bold/`<br>` content you
+    reported broken (temporarily, reverted before committing — never
+    shipped as dead code) and confirmed via Playwright: real `<table>`
+    and `<strong>` elements render, no literal `<br>` or `**` text
+    remains visible. Screenshot reviewed, not just DOM assertions.
