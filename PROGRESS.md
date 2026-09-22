@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 75% (Phases 1–4 complete)**
+**Overall completion: 90% (Phases 1–5 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -32,9 +32,9 @@ phase's weight; all phases sum to 100%.
 - [x] 4.4 Post-Purchase / Service workflow — 5%
 
 ## Phase 5 — Frontend chat UI (15%)
-- [ ] 5.1 Chat UI scaffold (Vite + React + TS) — 5%
-- [ ] 5.2 Message rendering + stage indicator — 5%
-- [ ] 5.3 API integration + session handling (localStorage sessionId) — 5%
+- [x] 5.1 Chat UI scaffold (Vite + React + TS) — 5%
+- [x] 5.2 Message rendering + stage indicator — 5%
+- [x] 5.3 API integration + session handling (localStorage sessionId) — 5%
 
 ## Phase 6 — State management + end-to-end testing of all 4 scenarios (7%)
 - [ ] 6.1 Redis session store wiring — 2%
@@ -151,3 +151,37 @@ phase's weight; all phases sum to 100%.
   real error only in the server log. Full `/chat` flow against real
   Groq/Zoho still needs a run on your machine — same credential boundary
   as before.
+
+### Notes from Phase 5
+- **`ChatWindow.tsx`** is the only stateful component — holds the message
+  list, current stage, sending/error state, and calls `sendChatMessage` on
+  submit. `MessageBubble`, `ChatInput`, `StageIndicator` are all plain,
+  presentation-only components underneath it.
+- **`useSession.ts`** generates a `crypto.randomUUID()` once per browser
+  and persists it in `localStorage`, wrapped in try/catch since storage
+  can throw in private browsing / blocked-storage cases — falls back to an
+  in-memory id for that page load rather than crashing.
+- **Styling** kept to the "minimal/neutral" default from `ARCHITECTURE.md`
+  §10.5 — system font stack, CSS variables with a `prefers-color-scheme`
+  dark variant, no UI library. Functional over branded, per that default.
+- **Live-verified in an actual browser** (per the working agreement's rule
+  to test UI changes visually, not just typecheck): ran both dev servers
+  and drove the page with Playwright.
+  - Initial render: header, "Not started" stage badge, empty-state copy —
+    all correct.
+  - Typed and sent a message → user bubble renders immediately → backend
+    call fails (500, no `GROQ_API_KEY` in this sandbox — same boundary as
+    every other live test so far) → error banner shows a clean message,
+    the user's message is **not** lost from the transcript, and the input
+    re-enables itself. This is the failure path a real user could hit
+    (backend down, bad network) and it degrades gracefully rather than
+    hanging or showing a raw error.
+  - `sessionId` confirmed written to `localStorage` in the correct UUID
+    format.
+  - Screenshots of both states were reviewed, not just the console
+    assertions — layout, spacing, and bubble alignment all render as
+    intended at a 500px mobile-ish width.
+  - **Not yet visually confirmed:** a real successful reply rendering (the
+    assistant bubble, stage badge updating to e.g. "New Lead") — that
+    needs your `GROQ_API_KEY`/Zoho credentials, same as Phases 3–4's full
+    live tests.

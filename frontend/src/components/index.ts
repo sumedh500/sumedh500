@@ -1,2 +1,4 @@
-// Phase 5.2: ChatWindow, MessageBubble, ChatInput, StageIndicator.
-export {};
+export { ChatWindow } from "./ChatWindow";
+export { MessageBubble } from "./MessageBubble";
+export { ChatInput } from "./ChatInput";
+export { StageIndicator } from "./StageIndicator";
