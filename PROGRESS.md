@@ -99,8 +99,18 @@ phase's weight; all phases sum to 100%.
   of doing their real job, instead of making the model call a separate
   lookup tool first — fewer tools on the table per turn, one less round
   trip.
-- **Not yet tested against live Groq** — this session has no `GROQ_API_KEY`
-  (same boundary as Zoho: it belongs in your local `backend/.env`, never in
-  chat). Typecheck, lint, and an offline registry/validation smoke test all
-  pass; the actual classify→tool-call→reply loop against a real model still
-  needs a run on your machine. See "how to test" below.
+- **Not yet fully tested against live Groq** — this session has no
+  `GROQ_API_KEY` (same boundary as Zoho: it belongs in your local
+  `backend/.env`, never in chat). Typecheck, lint, and an offline registry/
+  validation smoke test all pass; the actual classify→tool-call→reply loop
+  against a real model still needs a run on your machine.
+- **Bug found via your first live test:** the default `GROQ_MODEL`,
+  `llama-3.3-70b-versatile`, was decommissioned by Groq on Aug 16, 2026 —
+  after my knowledge cutoff, so it wasn't a stale-training-data guess I
+  could've caught by reasoning alone. Changed the default (`env.ts`,
+  `.env.example`, `ARCHITECTURE.md` §10.1) to `openai/gpt-oss-120b`, Groq's
+  own recommended replacement for tool-calling workloads (confirmed via a
+  live web search, not assumed) — `openai/gpt-oss-20b` is a lighter
+  fallback noted in `.env.example` if you hit free-tier rate limits. If
+  your local `backend/.env` already has `GROQ_MODEL` set explicitly (not
+  just relying on the default), update or remove that line too.

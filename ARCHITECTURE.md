@@ -213,10 +213,14 @@ These aren't stack choices (those are locked) — they're implementation
 details where the brief didn't specify an exact value. Stated as defaults;
 override any of them in your approval reply and I'll build it that way instead.
 
-1. **Groq model:** `llama-3.3-70b-versatile` for both the classifier and
-   the main tool-calling loop (classifier call uses a short max_tokens /
-   JSON mode; same model keeps things simple — could swap the classifier to
-   a smaller/faster Groq model later if latency matters).
+1. **Groq model:** `openai/gpt-oss-120b` for both the classifier and the
+   main tool-calling loop (classifier call uses a short max_tokens / JSON
+   mode; same model keeps things simple — could swap the classifier to a
+   smaller/faster Groq model later if latency matters). Originally planned
+   as `llama-3.3-70b-versatile`, but Groq decommissioned that model in
+   August 2026 — `openai/gpt-oss-120b` is Groq's own recommended
+   replacement for tool-calling workloads; `openai/gpt-oss-20b` is a
+   lighter fallback if you hit free-tier rate limits.
 2. **Zoho custom field API names:** I don't know your actual Zoho CRM field
    setup (e.g. is "vehicle model" already a custom field on Leads, and what's
    its API name?). Default assumption: I'll create a documented custom field

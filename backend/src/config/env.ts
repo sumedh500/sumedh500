@@ -32,7 +32,9 @@ export function loadConfig(): AppConfig {
     nodeEnv: process.env.NODE_ENV ?? "development",
     groq: {
       apiKey: process.env.GROQ_API_KEY ?? "",
-      model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+      // llama-3.3-70b-versatile was decommissioned by Groq (Aug 2026); this
+      // is Groq's own recommended replacement for tool-calling workloads.
+      model: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
     },
     redis: {
       url: process.env.REDIS_URL ?? "redis://localhost:6379",
