@@ -47,6 +47,11 @@ export interface DealSearchParams {
   dealId?: string;
 }
 
+export interface BookingSearchParams {
+  phone?: string;
+  bookingId?: string; // the human-readable Booking_Id field, e.g. "BK-2024-00123" — NOT Zoho's internal record id
+}
+
 export interface DealFollowUpUpdate {
   followUpPreference: string;
 }

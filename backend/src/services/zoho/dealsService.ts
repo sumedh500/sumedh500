@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getZohoClient } from "./zohoClient";
 import { findContactByPhone, getDealsForContact } from "./contactsService";
-import { BOOKING_STAGE, DealFollowUpUpdate, DealSearchParams, ZohoDeal } from "../../types/zoho";
+import { BOOKING_STAGE, BookingSearchParams, DealFollowUpUpdate, DealSearchParams, ZohoDeal } from "../../types/zoho";
 
 async function getDealById(dealId: string): Promise<ZohoDeal | null> {
   const client = getZohoClient();
@@ -49,9 +49,18 @@ export async function updateDealFollowUp(dealId: string, update: DealFollowUpUpd
 // underlying Deals module as searchDeal, but only returns a match once it
 // has actually reached the booking stage — an in-progress quotation for
 // the same phone number is deliberately not returned here.
-export async function searchBooking(params: DealSearchParams): Promise<ZohoDeal | null> {
-  if (params.dealId) {
-    const deal = await getDealById(params.dealId);
+//
+// bookingId here is the human-readable Booking_Id custom field (e.g.
+// "BK-2024-00123"), NOT Zoho's internal record id — customers were given
+// that field's value, not a Zoho record id, so this has to be a criteria
+// search rather than a direct GET /Deals/{id}.
+export async function searchBooking(params: BookingSearchParams): Promise<ZohoDeal | null> {
+  if (params.bookingId) {
+    const client = getZohoClient();
+    const response = await client.get("/Deals/search", {
+      params: { criteria: `(Booking_Id:equals:${params.bookingId})` },
+    });
+    const deal: ZohoDeal | undefined = response.data?.data?.[0];
     return deal && deal.Stage === BOOKING_STAGE ? deal : null;
   }
 
@@ -62,5 +71,5 @@ export async function searchBooking(params: DealSearchParams): Promise<ZohoDeal 
     return deals.find((deal) => deal.Stage === BOOKING_STAGE) ?? null;
   }
 
-  throw new Error("searchBooking requires phone or dealId");
+  throw new Error("searchBooking requires phone or bookingId");
 }

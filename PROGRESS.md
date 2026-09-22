@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 30% (Phases 1–2 complete)**
+**Overall completion: 55% (Phases 1–3 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -20,10 +20,10 @@ phase's weight; all phases sum to 100%.
 - [x] 2.5 Seed script (1 Lead, 1 Deal, 1 Booking) — 2%
 
 ## Phase 3 — LLM agent core (intent classification + tool calling) (25%)
-- [ ] 3.1 Groq SDK integration + system prompt design — 5%
-- [ ] 3.2 Stage classifier call — 6%
-- [ ] 3.3 Tool registry + dispatcher — 6%
-- [ ] 3.4 Tool-calling loop (multi-turn execution + response synthesis) — 8%
+- [x] 3.1 Groq SDK integration + system prompt design — 5%
+- [x] 3.2 Stage classifier call — 6%
+- [x] 3.3 Tool registry + dispatcher — 6%
+- [x] 3.4 Tool-calling loop (multi-turn execution + response synthesis) — 8%
 
 ## Phase 4 — The 4 lifecycle workflows wired to agent core (20%)
 - [ ] 4.1 New Lead workflow — 5%
@@ -71,3 +71,36 @@ phase's weight; all phases sum to 100%.
   Deal `1435640000000552001`, booking Deal `1435640000000553001` /
   `BK-2024-00123`) created successfully via `npm run seed:zoho`. Phase 2
   is confirmed working end-to-end, not just typechecked.
+- **Bug fix during Phase 3:** `searchBooking` could previously only look a
+  Deal up by phone or Zoho's internal record id — not by the human-readable
+  `Booking_Id` field (e.g. `BK-2024-00123`) that the brief and the seed
+  script's own printed test instructions actually use. Fixed to do a
+  proper criteria search on `Booking_Id`.
+
+### Notes from Phase 3
+- **Two-call design implemented as planned** (`ARCHITECTURE.md` §3):
+  `classifier.ts` does a no-tools, forced-JSON, temperature-0 call with the
+  prior stage as a sticky default; `agentService.ts` then builds a
+  stage-scoped system prompt + tool list and runs `toolLoop.ts`'s
+  execute/respond loop (capped at 4 iterations) via Groq's native tool
+  calling. Verified offline (no Groq/Zoho calls needed for this part):
+  each stage exposes exactly its own tools, and invalid tool arguments
+  come back as a specific Zod error message rather than a crash.
+- **Refinement vs. the original §3 plan:** instead of hiding an incomplete
+  tool until a separately-tracked `pendingFields` object is complete, tool
+  arguments are Zod-validated at call time and validation errors are fed
+  back to the model as the tool result. The model reads "email: Required"
+  and asks for it naturally on the next turn — same effect, less state to
+  track in this phase. Can add the stricter hide-until-ready gating in
+  Phase 4 if you'd rather have it.
+- **Simplification vs. §4's tool inventory:** `find_contact` isn't exposed
+  as its own callable tool. `search_deal`, `search_booking`, and
+  `create_case` each resolve their phone→Contact lookup internally as part
+  of doing their real job, instead of making the model call a separate
+  lookup tool first — fewer tools on the table per turn, one less round
+  trip.
+- **Not yet tested against live Groq** — this session has no `GROQ_API_KEY`
+  (same boundary as Zoho: it belongs in your local `backend/.env`, never in
+  chat). Typecheck, lint, and an offline registry/validation smoke test all
+  pass; the actual classify→tool-call→reply loop against a real model still
+  needs a run on your machine. See "how to test" below.

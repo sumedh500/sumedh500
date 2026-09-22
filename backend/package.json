@@ -11,7 +11,8 @@
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "seed:zoho": "tsx scripts/seed-zoho.ts",
-    "zoho:refresh-token": "tsx scripts/zoho-get-refresh-token.ts"
+    "zoho:refresh-token": "tsx scripts/zoho-get-refresh-token.ts",
+    "test:agent": "tsx scripts/test-agent.ts"
   },
   "dependencies": {
     "axios": "^1.7.9",
