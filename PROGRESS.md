@@ -66,8 +66,8 @@ phase's weight; all phases sum to 100%.
 - `docs/ZOHO_FIELDS.md` now has the concrete API-name mapping (which
   fields are standard vs. custom you need to create) — was previously just
   referenced, not written.
-- Still open: do you have an existing Zoho CRM sandbox/dev account with
-  API console access, or should setup assume a fresh trial org? Not
-  blocking further phases (agent core/workflows don't need live Zoho
-  credentials to build against), but needed before you can run
-  `npm run zoho:refresh-token` / `npm run seed:zoho` for real.
+- **Live-verified against a real Zoho org** — OAuth exchange, token
+  refresh, and all 3 seed records (Lead `1435640000000549006`, pipeline
+  Deal `1435640000000552001`, booking Deal `1435640000000553001` /
+  `BK-2024-00123`) created successfully via `npm run seed:zoho`. Phase 2
+  is confirmed working end-to-end, not just typechecked.
