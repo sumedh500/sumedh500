@@ -4,6 +4,19 @@ import { loadConfig } from "../../config/env";
 let client: Redis | null = null;
 let hasLoggedConnectionError = false;
 
+// Safe to print: host, port, and whether TLS is active — never the
+// password. Helps spot a malformed REDIS_URL (e.g. an unencoded special
+// character in the password corrupting the parsed host/port) without
+// exposing the secret.
+function describeConnectionTarget(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.hostname}:${parsed.port || "(default)"} (tls: ${parsed.protocol === "rediss:"})`;
+  } catch {
+    return "(unparseable REDIS_URL)";
+  }
+}
+
 export function getRedisClient(): Redis {
   if (client) return client;
 
@@ -17,6 +30,8 @@ export function getRedisClient(): Redis {
         "protocol over TCP, not Upstash's HTTP REST API."
     );
   }
+
+  console.log(`Connecting to Redis at ${describeConnectionTarget(url)}`);
 
   client = new Redis(url, {
     // Fail fast per-request rather than buffering commands indefinitely
@@ -32,25 +47,33 @@ export function getRedisClient(): Redis {
     },
   });
 
+  // MaxRetriesPerRequestError (the one you've been hitting) carries no
+  // information about *why* commands never got a response — it fires
+  // identically whether the TCP connect never completed, the TLS
+  // handshake stalled, or auth failed silently. These lower-level
+  // lifecycle events pinpoint which stage actually failed.
+  client.on("connect", () => console.log("Redis: TCP connection established, authenticating..."));
+  client.on("ready", () => {
+    console.log("Redis: ready (connected and authenticated).");
+    hasLoggedConnectionError = false;
+  });
+  client.on("reconnecting", (delay: number) => console.log(`Redis: reconnecting in ${delay}ms...`));
+  client.on("end", () => console.log("Redis: connection closed, giving up (retry cap reached)."));
+
   client.on("error", (error) => {
-    // ioredis emits 'error' repeatedly during reconnect attempts — log the
-    // first occurrence with a full hint, then stay quiet until it either
-    // recovers ('ready') or gives up ('end') to avoid flooding the console
-    // with the same message on every retry.
+    // Fires repeatedly during reconnect attempts — log the first
+    // occurrence with the full hint, then stay quiet until it recovers
+    // ('ready') to avoid flooding the console with the same message.
     if (hasLoggedConnectionError) return;
     hasLoggedConnectionError = true;
 
     console.error(
       `Redis connection error: ${error.message}\n` +
-        "Check REDIS_URL in backend/.env — for a hosted Redis (e.g. Upstash), it must be the " +
-        "native connection string starting with redis:// or rediss://, not an HTTP(S) URL, " +
-        "and must include the password (usually as part of the URL, e.g. " +
-        "rediss://default:<password>@<host>:<port>)."
+        "Check REDIS_URL in backend/.env — it must be the native connection string " +
+        "(redis:// or rediss://), include the password, and any special characters in the " +
+        "password must be URL-encoded (e.g. @ as %40) or they'll corrupt the parsed host/port. " +
+        `See "Connecting to Redis at ..." above for what was actually parsed out of it.`
     );
-  });
-
-  client.on("ready", () => {
-    hasLoggedConnectionError = false;
   });
 
   return client;
