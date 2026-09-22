@@ -99,11 +99,15 @@ phase's weight; all phases sum to 100%.
   of doing their real job, instead of making the model call a separate
   lookup tool first — fewer tools on the table per turn, one less round
   trip.
-- **Not yet fully tested against live Groq** — this session has no
-  `GROQ_API_KEY` (same boundary as Zoho: it belongs in your local
-  `backend/.env`, never in chat). Typecheck, lint, and an offline registry/
-  validation smoke test all pass; the actual classify→tool-call→reply loop
-  against a real model still needs a run on your machine.
+- **Live-verified end to end (New Lead flow)** via `npm run test:agent`:
+  stage classification stayed sticky on `new_lead` across 5 turns
+  (confidence 0.97–0.99 throughout), the agent collected name/phone/email/
+  city one or two fields at a time as instructed, then correctly called
+  `create_lead` only once all five fields were present — creating a real
+  Zoho Lead (ID `1435640000000552006`). The other 3 stages (ongoing
+  pipeline, booked vehicle, post-purchase) haven't been manually exercised
+  yet — worth trying via `npm run test:agent` using the phone/Deal ID/
+  Booking ID from the Phase 2 seed output.
 - **Bug found via your first live test:** the default `GROQ_MODEL`,
   `llama-3.3-70b-versatile`, was decommissioned by Groq on Aug 16, 2026 —
   after my knowledge cutoff, so it wasn't a stale-training-data guess I
