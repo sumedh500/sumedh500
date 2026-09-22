@@ -32,6 +32,12 @@ async function main() {
     process.exit(1);
   }
 
+  // Printed so you can self-diagnose invalid_client: this MUST be the same
+  // accounts server (same DC) shown in the URL of the API Console page
+  // where you created the Self Client and generated the grant token.
+  console.log(`Exchanging against https://accounts.zoho.${dataCenter} (ZOHO_DC=${dataCenter})`);
+  console.log(`Using Client ID: ${clientId.slice(0, 10)}...\n`);
+
   const result = await exchangeGrantTokenForRefreshToken({
     grantToken,
     clientId,
@@ -45,6 +51,19 @@ async function main() {
 }
 
 main().catch((error) => {
+  const zohoError = error.response?.data?.error;
+
+  if (zohoError === "invalid_client") {
+    console.error(
+      "\ninvalid_client — the Client ID/Secret don't match a Self Client on this accounts server.\n" +
+        "Most common cause: ZOHO_DC in .env doesn't match the region your Self Client was created in.\n" +
+        "Check the URL of the Zoho API Console page you used (api-console.zoho.<DC>) and make sure\n" +
+        "ZOHO_DC in .env is exactly that <DC> (com / in / eu / com.au / jp / ca / sa).\n" +
+        "Also double-check the Client ID/Secret were copied from the SAME Self Client that generated this grant token.\n"
+    );
+    process.exit(1);
+  }
+
   console.error("Grant token exchange failed:", error.response?.data ?? error.message ?? error);
   process.exit(1);
 });
