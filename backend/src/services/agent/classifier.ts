@@ -1,6 +1,14 @@
 import { getGroqClient, getGroqModel } from "./groqClient";
 import type { ChatMessage, StageClassification } from "../../types/agent";
 import type { StageId } from "../../types";
+import type { ChatCompletionCreateParamsNonStreaming } from "groq-sdk/resources/chat/completions";
+
+// groq-sdk 0.9.1's types predate the reasoning-model `reasoning_effort`
+// param (openai/gpt-oss-* on Groq). The API accepts it regardless — this
+// just widens the request type so we can pass it without an `any` cast.
+type GroqRequestWithReasoning = ChatCompletionCreateParamsNonStreaming & {
+  reasoning_effort?: "low" | "medium" | "high";
+};
 
 const STAGES: StageId[] = ["new_lead", "ongoing_pipeline", "booked_vehicle", "post_purchase"];
 
@@ -35,7 +43,7 @@ function buildUserPrompt(messages: ChatMessage[], currentStage: StageId | null):
 export async function classifyStage(messages: ChatMessage[], currentStage: StageId | null): Promise<StageClassification> {
   const client = getGroqClient();
 
-  const response = await client.chat.completions.create({
+  const request: GroqRequestWithReasoning = {
     model: getGroqModel(),
     messages: [
       { role: "system", content: CLASSIFIER_INSTRUCTIONS },
@@ -43,8 +51,17 @@ export async function classifyStage(messages: ChatMessage[], currentStage: Stage
     ],
     response_format: { type: "json_object" },
     temperature: 0,
-    max_tokens: 100,
-  });
+    // Reasoning models (openai/gpt-oss-* on Groq) spend part of max_tokens
+    // on a hidden chain-of-thought before the final JSON — 100 was enough
+    // for the answer alone but not the reasoning ahead of it, so this call
+    // was hitting json_validate_failed. Classification is a simple
+    // categorization task that doesn't need deep reasoning, so effort is
+    // set to "low" to keep both latency and the reasoning-token spend down.
+    max_tokens: 1024,
+    reasoning_effort: "low",
+  };
+
+  const response = await client.chat.completions.create(request);
 
   const raw = response.choices[0]?.message?.content ?? "{}";
   const classification = parseClassification(raw, currentStage);
