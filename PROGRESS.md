@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 2% (Phase 1.1 done — docs below awaiting your approval)**
+**Overall completion: 10% (Phase 1 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -9,8 +9,8 @@ phase's weight; all phases sum to 100%.
 
 ## Phase 1 — Planning & scaffolding (10%)
 - [x] 1.1 Architecture & design docs (`ARCHITECTURE.md`, this file, folder tree) — 4%
-- [ ] 1.2 Repo scaffolding (frontend + backend folders, tsconfig, eslint, package.json) — 4%
-- [ ] 1.3 Env/config setup (`.env.example`, config loader) — 2%
+- [x] 1.2 Repo scaffolding (frontend + backend folders, tsconfig, eslint, package.json) — 4%
+- [x] 1.3 Env/config setup (`.env.example`, config loader) — 2%
 
 ## Phase 2 — Zoho CRM integration (OAuth + CRUD wrappers + mock data) (20%)
 - [ ] 2.1 OAuth 2.0 Self Client setup + access-token refresh service — 6%
@@ -50,8 +50,8 @@ phase's weight; all phases sum to 100%.
 
 ---
 
-### Open questions blocking full Phase 1 start
-See §10 of `ARCHITECTURE.md` for the full list with proposed defaults.
-The one that most affects scaffolding: do you have an existing Zoho CRM
-sandbox/dev account with API console access already, or should setup
-assume a fresh trial org?
+### Open questions (still relevant for Phase 2)
+See §10 of `ARCHITECTURE.md` for the full list with proposed defaults —
+all accepted as-is for now. Still needed before Phase 2.1 (OAuth): do you
+have an existing Zoho CRM sandbox/dev account with API console access
+already, or should setup assume a fresh trial org?
