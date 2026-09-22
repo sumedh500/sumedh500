@@ -30,9 +30,15 @@ async function refreshAccessToken(): Promise<TokenState> {
   const { clientId, clientSecret, refreshToken, dataCenter } = config.zoho;
 
   if (!clientId || !clientSecret || !refreshToken) {
+    const missing = [
+      !clientId && "ZOHO_CLIENT_ID",
+      !clientSecret && "ZOHO_CLIENT_SECRET",
+      !refreshToken && "ZOHO_REFRESH_TOKEN",
+    ].filter(Boolean);
+
     throw new Error(
-      "Missing Zoho OAuth credentials. Set ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET and ZOHO_REFRESH_TOKEN " +
-        "(generate the refresh token once with backend/scripts/zoho-get-refresh-token.ts)."
+      `Missing Zoho OAuth env var(s): ${missing.join(", ")}. ` +
+        "Set them in backend/.env (refresh token: run backend/scripts/zoho-get-refresh-token.ts once and paste its output into backend/.env)."
     );
   }
 
