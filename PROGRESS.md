@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 90% (Phases 1–5 complete)**
+**Overall completion: 92% (Phases 1–5 complete, Phase 6.1 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -37,8 +37,8 @@ phase's weight; all phases sum to 100%.
 - [x] 5.3 API integration + session handling (localStorage sessionId) — 5%
 
 ## Phase 6 — State management + end-to-end testing of all 4 scenarios (7%)
-- [ ] 6.1 Redis session store wiring — 2%
-- [ ] 6.2 E2E test: New Lead scenario — 1.25%
+- [x] 6.1 Redis session store wiring — 2%
+- [ ] 6.2 E2E test: New Lead scenario (via UI) — 1.25%
 - [ ] 6.3 E2E test: Ongoing Pipeline scenario — 1.25%
 - [ ] 6.4 E2E test: Booked Vehicle scenario — 1.25%
 - [ ] 6.5 E2E test: Post-Purchase scenario — 1.25%
@@ -205,3 +205,34 @@ phase's weight; all phases sum to 100%.
     shipped as dead code) and confirmed via Playwright: real `<table>`
     and `<strong>` elements render, no literal `<br>` or `**` text
     remains visible. Screenshot reviewed, not just DOM assertions.
+
+### Notes from Phase 6
+- **`sessionService.ts` swapped from an in-memory `Map` to Redis** exactly
+  as planned back in Phase 4 — same `getOrCreateSession`/`updateSession`
+  function names and shapes (now `Promise`-returning), so `chatController`
+  only needed two `await` keywords added, nothing else. `redisClient.ts`
+  is a small singleton wrapping `ioredis`, reading `REDIS_URL` from config.
+- **TTL is sliding, not fixed-from-creation**: every `updateSession` call
+  (i.e. every completed turn) does a Redis `SET ... EX <SESSION_TTL_SECONDS>`,
+  which resets the expiry. An abandoned conversation expires
+  `SESSION_TTL_SECONDS` after its *last* message, not its first.
+- **A session is only written to Redis on a successful turn.** If
+  `runAgentTurn` throws (bad Groq/Zoho call, etc.), `updateSession` never
+  runs, so nothing half-initialized gets persisted — a retry just starts
+  clean. Verified this directly: hit `/chat` with valid input but no
+  `GROQ_API_KEY` configured (expected 500), then checked
+  `redis-cli KEYS "session:*"` — empty, confirming no stray key.
+- **Live-verified against a real local Redis instance** (started
+  `redis-server` in this sandbox — no credentials needed for this part):
+  a throwaway script exercised `getOrCreateSession` → `updateSession` →
+  reload → wait 1.2s → `updateSession` again, confirming: a fresh session
+  has `stage: null, messages: []`; TTL is set to the configured 1800s on
+  first write; `createdAt` is preserved across updates while
+  `lastActiveAt` advances; and TTL resets to 1800s on the second update
+  (the sliding-TTL behavior working, not just present).
+- **What's left for Phase 6 is on you**: 6.2–6.5 are you running all 4
+  lifecycle stages through the real browser UI (not the CLI harness) with
+  your Groq/Zoho credentials and **a Redis instance actually running** —
+  none of this has a fallback if Redis is down, by design (that's the
+  point of moving off the in-memory Map). See the test script in my reply
+  for exact phone numbers/IDs to use from the Phase 2 seed data.

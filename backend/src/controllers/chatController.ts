@@ -12,12 +12,12 @@ const chatRequestSchema = z.object({
 export async function postChat(req: Request, res: Response): Promise<void> {
   const { sessionId, message } = chatRequestSchema.parse(req.body);
 
-  const session = getOrCreateSession(sessionId);
+  const session = await getOrCreateSession(sessionId);
   const messages: ChatMessage[] = [...session.messages, { role: "user", content: message }];
 
   const result = await runAgentTurn({ messages, currentStage: session.stage });
 
-  updateSession(sessionId, { stage: result.stage, messages: result.messages });
+  await updateSession(sessionId, { stage: result.stage, messages: result.messages });
 
   res.json({
     sessionId,
