@@ -25,6 +25,31 @@ function accountsBaseUrl(dataCenter: string): string {
   return `https://accounts.zoho.${dataCenter}`;
 }
 
+// Zoho's refresh_token grant returns a bare {"error": "..."} with no
+// message — these are the codes people actually hit during setup.
+function zohoTokenErrorHint(zohoError: string | undefined): string {
+  switch (zohoError) {
+    case "invalid_code":
+      return (
+        "\nHint: ZOHO_REFRESH_TOKEN in .env is probably holding the grant token " +
+        "(the code you passed as the CLI argument) instead of the refresh_token the " +
+        "exchange script printed afterward. Generate a fresh grant token, re-run " +
+        "backend/scripts/zoho-get-refresh-token.ts, and copy the ZOHO_REFRESH_TOKEN=... " +
+        "line it prints — not the argument you typed in."
+      );
+    case "invalid_client":
+      return "\nHint: ZOHO_CLIENT_ID/ZOHO_CLIENT_SECRET don't match a Self Client on this ZOHO_DC's accounts server.";
+    case "invalid_grant":
+      return (
+        "\nHint: this refresh token was rejected (revoked, or superseded by a newer one " +
+        "issued for the same Self Client). Generate a fresh grant token and re-run " +
+        "backend/scripts/zoho-get-refresh-token.ts."
+      );
+    default:
+      return "";
+  }
+}
+
 async function refreshAccessToken(): Promise<TokenState> {
   const config = loadConfig();
   const { clientId, clientSecret, refreshToken, dataCenter } = config.zoho;
@@ -51,10 +76,10 @@ async function refreshAccessToken(): Promise<TokenState> {
     },
   });
 
-  const { access_token, expires_in, api_domain } = response.data ?? {};
+  const { access_token, expires_in, api_domain, error: zohoError } = response.data ?? {};
 
   if (!access_token) {
-    throw new Error(`Zoho token refresh failed: ${JSON.stringify(response.data)}`);
+    throw new Error(`Zoho token refresh failed: ${JSON.stringify(response.data)}${zohoTokenErrorHint(zohoError)}`);
   }
 
   const state: TokenState = {
