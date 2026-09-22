@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 55% (Phases 1–3 complete)**
+**Overall completion: 75% (Phases 1–4 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -26,10 +26,10 @@ phase's weight; all phases sum to 100%.
 - [x] 3.4 Tool-calling loop (multi-turn execution + response synthesis) — 8%
 
 ## Phase 4 — The 4 lifecycle workflows wired to agent core (20%)
-- [ ] 4.1 New Lead workflow — 5%
-- [ ] 4.2 Ongoing Pipeline workflow — 5%
-- [ ] 4.3 Booked Vehicle workflow — 5%
-- [ ] 4.4 Post-Purchase / Service workflow — 5%
+- [x] 4.1 New Lead workflow — 5%
+- [x] 4.2 Ongoing Pipeline workflow — 5%
+- [x] 4.3 Booked Vehicle workflow — 5%
+- [x] 4.4 Post-Purchase / Service workflow — 5%
 
 ## Phase 5 — Frontend chat UI (15%)
 - [ ] 5.1 Chat UI scaffold (Vite + React + TS) — 5%
@@ -118,3 +118,36 @@ phase's weight; all phases sum to 100%.
   fallback noted in `.env.example` if you hit free-tier rate limits. If
   your local `backend/.env` already has `GROQ_MODEL` set explicitly (not
   just relying on the default), update or remove that line too.
+
+### Notes from Phase 4
+- **What was actually left after Phase 3:** the agent core (classify →
+  stage-scoped tools → tool loop) already handled all 4 lifecycle stages
+  generically — there was no separate per-stage logic to write. What was
+  genuinely missing was the HTTP layer connecting it to the world:
+  `POST /chat`, request validation, a session store, and centralized error
+  handling. That's what Phase 4 built.
+- **`sessionService.ts`** — an in-memory `Map<sessionId, Session>` for now.
+  Deliberately built with the exact function signatures
+  (`getOrCreateSession`, `updateSession`) that Phase 6 will keep when it
+  swaps the `Map` for Redis + a TTL — the controller won't need to change.
+  Known limitation until then: restarting the backend loses every session,
+  and it won't work across multiple backend instances. Fine for a single-
+  process dev/demo setup.
+- **`chatController.ts`** — validates `{sessionId, message}` with Zod,
+  loads (or creates) the session, appends the user message, calls
+  `runAgentTurn`, persists the result, responds with
+  `{sessionId, reply, stage, toolCalls}`. The client only ever needs to
+  remember `sessionId` — the server owns conversation history and stage
+  entirely, which is what lets Phase 5's frontend stay simple.
+- **Error handling** — a centralized `errorHandler` middleware returns
+  400s with specific field errors for bad requests (Zod validation
+  failures) and a generic, safe 500 for anything else — the real error is
+  logged server-side but never leaked to the client. `asyncHandler` wraps
+  the controller so a rejected promise reaches this middleware instead of
+  hanging the request (Express 4 doesn't do this automatically).
+- **Live-verified via curl** (no Groq/Zoho credentials needed for this
+  part): `/health` → 200, missing/empty body → 400 with correct field
+  names, valid body without `GROQ_API_KEY` configured → clean 500 with the
+  real error only in the server log. Full `/chat` flow against real
+  Groq/Zoho still needs a run on your machine — same credential boundary
+  as before.
