@@ -118,6 +118,34 @@ body {
   margin: 0;
 }
 
+.chat-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.new-chat-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.new-chat-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .stage-indicator {
   display: inline-flex;
   align-items: center;
