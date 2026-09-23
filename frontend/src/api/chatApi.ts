@@ -18,7 +18,10 @@ export async function sendChatMessage(sessionId: string, message: string): Promi
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     const detail = Array.isArray(body?.details) ? body.details.join(", ") : undefined;
-    throw new Error(detail ?? body?.error ?? `Request failed with status ${response.status}`);
+    // `message` is the human-readable text for a specific error case (e.g.
+    // rate_limit); `error` alone is just a short code ("rate_limit",
+    // "Something went wrong...") — prefer the former when both are present.
+    throw new Error(detail ?? body?.message ?? body?.error ?? `Request failed with status ${response.status}`);
   }
 
   return response.json();
