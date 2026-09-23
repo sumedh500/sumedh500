@@ -7,6 +7,7 @@ export interface AppConfig {
   groq: {
     apiKey: string;
     model: string;
+    fallbackModel: string;
   };
   redis: {
     url: string;
@@ -40,6 +41,12 @@ export function loadConfig(): AppConfig {
       // llama-3.3-70b-versatile was decommissioned by Groq (Aug 2026); this
       // is Groq's own recommended replacement for tool-calling workloads.
       model: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
+      // Free-tier daily token caps are shared per model, not per account —
+      // when the primary model's cap is hit mid-demo, every Groq call
+      // (classifier + tool loop) automatically retries once against this
+      // lighter model instead of failing the turn. Set to the same value
+      // as GROQ_MODEL to disable fallback.
+      fallbackModel: process.env.GROQ_FALLBACK_MODEL ?? "openai/gpt-oss-20b",
     },
     redis: {
       url: process.env.REDIS_URL ?? "redis://localhost:6379",

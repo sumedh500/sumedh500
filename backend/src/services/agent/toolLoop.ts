@@ -1,4 +1,4 @@
-import { getGroqClient, getGroqModel } from "./groqClient";
+import { getGroqClient, withGroqFallback } from "./groqClient";
 import { executeTool } from "../tools/toolRegistry";
 import type { ChatMessage, ToolCallLogEntry, ToolDefinition } from "../../types/agent";
 import type { StageId } from "../../types";
@@ -17,18 +17,19 @@ export async function runToolLoop(params: {
   stage: StageId;
 }): Promise<{ reply: string; toolCallLog: ToolCallLogEntry[]; messages: ChatMessage[] }> {
   const client = getGroqClient();
-  const model = getGroqModel();
   const workingMessages: ChatMessage[] = [...params.messages];
   const toolCallLog: ToolCallLogEntry[] = [];
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-    const response = await client.chat.completions.create({
-      model,
-      messages: workingMessages,
-      tools: params.tools,
-      tool_choice: "auto",
-      temperature: 0.3,
-    });
+    const response = await withGroqFallback((model) =>
+      client.chat.completions.create({
+        model,
+        messages: workingMessages,
+        tools: params.tools,
+        tool_choice: "auto",
+        temperature: 0.3,
+      })
+    );
 
     const message = response.choices[0]?.message;
     if (!message) {

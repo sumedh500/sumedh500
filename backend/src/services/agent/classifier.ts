@@ -1,4 +1,4 @@
-import { getGroqClient, getGroqModel } from "./groqClient";
+import { getGroqClient, withGroqFallback } from "./groqClient";
 import type { ChatMessage, StageClassification } from "../../types/agent";
 import type { StageId } from "../../types";
 import type { ChatCompletionCreateParamsNonStreaming } from "groq-sdk/resources/chat/completions";
@@ -43,8 +43,8 @@ function buildUserPrompt(messages: ChatMessage[], currentStage: StageId | null):
 export async function classifyStage(messages: ChatMessage[], currentStage: StageId | null): Promise<StageClassification> {
   const client = getGroqClient();
 
-  const request: GroqRequestWithReasoning = {
-    model: getGroqModel(),
+  const buildRequest = (model: string): GroqRequestWithReasoning => ({
+    model,
     messages: [
       { role: "system", content: CLASSIFIER_INSTRUCTIONS },
       { role: "user", content: buildUserPrompt(messages, currentStage) },
@@ -59,9 +59,9 @@ export async function classifyStage(messages: ChatMessage[], currentStage: Stage
     // set to "low" to keep both latency and the reasoning-token spend down.
     max_tokens: 1024,
     reasoning_effort: "low",
-  };
+  });
 
-  const response = await client.chat.completions.create(request);
+  const response = await withGroqFallback((model) => client.chat.completions.create(buildRequest(model)));
 
   const raw = response.choices[0]?.message?.content ?? "{}";
   const classification = parseClassification(raw, currentStage);
