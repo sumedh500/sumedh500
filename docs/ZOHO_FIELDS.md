@@ -29,7 +29,7 @@ fields in Zoho to match this doc.
 | Field (API name) | Type | Standard or custom |
 |---|---|---|
 | `Deal_Name` | Single Line | Standard (mandatory) |
-| `Stage` | Picklist | Standard — must include the value `Closed Won - Booking Done` in Setup → Sales Stages |
+| `Stage` | Picklist | Standard — uses the built-in `Closed Won` value, no Zoho setup needed (see ARCHITECTURE.md §12 for why this isn't a custom `Closed Won - Booking Done` stage) |
 | `Contact_Name` | Lookup → Contacts | Standard |
 | `Follow_Up_Preference` | Picklist (e.g. Call / WhatsApp / Email) | **Custom — create this** |
 | `VIN` | Single Line | **Custom — create this** |
@@ -39,7 +39,7 @@ fields in Zoho to match this doc.
 
 A "Deal" is both the Ongoing Pipeline record and the Booked Vehicle record
 — the only difference is `Stage`. `searchDeal` returns whatever's found;
-`searchBooking` additionally filters to `Stage === "Closed Won - Booking Done"`.
+`searchBooking` additionally filters to `Stage === "Closed Won"`.
 
 ## Cases module
 

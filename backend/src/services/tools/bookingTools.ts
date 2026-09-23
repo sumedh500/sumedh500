@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { searchBooking } from "../zoho/dealsService";
+import { BOOKING_STAGE } from "../../types/zoho";
 import type { ToolDefinition } from "../../types/agent";
 
 export const searchBookingArgsSchema = z
@@ -14,8 +15,8 @@ export const searchBookingTool: ToolDefinition = {
   function: {
     name: "search_booking",
     description:
-      "Look up a booked vehicle's allocation/delivery status by phone number or Booking ID. Only " +
-      "returns a result once the deal has actually reached the 'Closed Won - Booking Done' stage.",
+      `Look up a booked vehicle's allocation/delivery status by phone number or Booking ID. Only ` +
+      `returns a result once the deal has actually reached the '${BOOKING_STAGE}' stage.`,
     parameters: {
       type: "object",
       properties: {
@@ -35,7 +36,7 @@ export async function handleSearchBooking(rawArgs: unknown) {
   if (!booking) {
     return {
       found: false,
-      message: "No booking at the Closed Won - Booking Done stage found for that phone number / Booking ID.",
+      message: `No booking at the ${BOOKING_STAGE} stage found for that phone number / Booking ID.`,
     };
   }
 

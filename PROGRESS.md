@@ -271,6 +271,25 @@ phase's weight; all phases sum to 100%.
   just an unhelpful reply. The persona instructions already said "never
   invent CRM data," but apparently that didn't read as covering fabricated
   *contact* details. Strengthened `systemPrompt.ts`'s `PERSONA` to say so
-  explicitly. Not yet re-verified live (needs another real Groq call) —
-  worth specifically re-checking this exact "no booking found" case
-  again.
+  explicitly.
+
+- **Root cause of the Booked Vehicle failures, found by inspecting the
+  Zoho record directly**: it was never actually the phone-format bug
+  alone. The seed script's `Stage: "Closed Won - Booking Done"` write was
+  silently dropped by Zoho — a fresh org doesn't have that value
+  configured in the Deals Stage picklist, and rather than erroring, Zoho
+  fell back to the standard `Closed Won` stage. `searchBooking`'s exact
+  match against the custom string was never going to succeed. Changed
+  `BOOKING_STAGE` (`types/zoho.ts`) to the standard `"Closed Won"` value
+  instead of requiring a manually-configured custom stage — your explicit
+  call over the alternative (properly adding the custom stage in Zoho
+  Setup) when asked. Documented as a deliberate deviation from the
+  brief's literal wording in `ARCHITECTURE.md` §12, including the
+  trade-off (any `Closed Won` Deal now matches, not just ones that are
+  specifically vehicle bookings — fine at this project's scale, would
+  want `Booking_Id` non-empty as a second condition for production).
+  All three places the old string appeared (`types/zoho.ts`,
+  `bookingTools.ts`'s tool description/error text, both docs) now derive
+  from or reference the single constant. Not yet re-verified live —
+  should work immediately since the already-seeded Priya Iyer record's
+  real Zoho stage is already `Closed Won`, no re-seeding needed.

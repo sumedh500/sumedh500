@@ -14,7 +14,7 @@ reads/writes the corresponding Zoho CRM module:
 |---|---|---|---|
 | 1. New Lead | Unidentified visitor asks about models/pricing | `Leads` | Create lead record |
 | 2. Ongoing Pipeline | Known prospect gives phone/deal ID | `Deals` (Potentials) | Search + update follow-up prefs |
-| 3. Booked Vehicle | Customer gives Booking ID / phone | `Deals` (stage = Closed Won - Booking Done) | Read allocation/VIN/delivery status |
+| 3. Booked Vehicle | Customer gives Booking ID / phone | `Deals` (stage = Closed Won, see §12) | Read allocation/VIN/delivery status |
 | 4. Post-Purchase / Service | Owner logs complaint / books service | `Cases` (Service Tickets) | Create case linked to Contact |
 
 There is no separate "form" UI — the whole interaction happens in one chat
@@ -115,7 +115,7 @@ which stage exposed it.
   - `search_deal({phone?, dealId?})`
   - `update_deal_followup({dealId, followUpPreference})`
 - **Booked Vehicle**
-  - `search_booking({bookingId?, phone?})` — same underlying Deals module as pipeline, filtered to stage `Closed Won - Booking Done`; returns allocation stage / VIN / payment link.
+  - `search_booking({bookingId?, phone?})` — same underlying Deals module as pipeline, filtered to stage `Closed Won` (see §12); returns allocation stage / VIN / payment link.
 - **Post-Purchase / Service**
   - `create_case({contactId, registrationNumber, odometerReading, issueType, preferredServiceCenter})`
 
@@ -247,3 +247,25 @@ override any of them in your approval reply and I'll build it that way instead.
 See `PROGRESS.md`'s companion tree in the approval message / repo root
 listing below (kept in sync as the canonical structure once scaffolding
 starts in Phase 1.2).
+
+## 12. Booking stage — deviation from the brief's literal wording
+
+The brief names `"Closed Won - Booking Done"` as the Deal stage that
+signals a completed booking. That was the original implementation
+(`BOOKING_STAGE` in `backend/src/types/zoho.ts`), but it requires manually
+adding a brand-new value to the Deals module's Stage picklist in Zoho
+Setup (with its own Probability %, and care not to disrupt existing
+pipeline reporting) before the CRM will even accept it. During Phase 6
+live testing, the seed script's write of that value was silently dropped
+by Zoho (no error — a fresh org just doesn't recognize an unconfigured
+picklist value) and the record fell back to the standard `"Closed Won"`
+stage, which made every booking lookup fail.
+
+`BOOKING_STAGE` now matches on the standard `"Closed Won"` stage instead
+— every Zoho org has this by default, zero configuration required. The
+trade-off: any Deal marked `Closed Won` for a reason unrelated to a
+vehicle booking would now also match `search_booking`. Not a concern for
+this project's scope (a demo CRM with 2 seeded Deals), but worth knowing
+if this were extended toward production — the fix there would be
+requiring `Booking_Id` to also be non-empty as a second condition, rather
+than reverting to the custom-stage approach.

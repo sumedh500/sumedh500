@@ -28,7 +28,14 @@ export interface ZohoLead {
   Vehicle_Model: string; // custom field
 }
 
-export const BOOKING_STAGE = "Closed Won - Booking Done";
+// Originally a custom "Closed Won - Booking Done" stage per the brief's
+// wording, but that requires manually adding a new Sales Stage value in
+// Zoho (Setup -> Sales Stages, with its own Probability %) before it'll
+// even save correctly — a fresh org silently falls back to a default
+// stage if you write an unrecognized picklist value via the API, which is
+// exactly what happened during testing. Using the standard "Closed Won"
+// stage instead works with zero Zoho configuration required.
+export const BOOKING_STAGE = "Closed Won";
 
 export interface ZohoDeal {
   id: string;
