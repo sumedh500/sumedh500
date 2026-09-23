@@ -22,6 +22,8 @@ services:
         sync: false
       - key: GROQ_MODEL
         value: openai/gpt-oss-120b
+      - key: GROQ_FALLBACK_MODEL
+        value: openai/gpt-oss-20b
       - key: REDIS_URL
         sync: false
       - key: SESSION_TTL_SECONDS
