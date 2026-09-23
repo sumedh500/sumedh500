@@ -16,6 +16,7 @@ interface StageIndicatorProps {
 export function StageIndicator({ stage }: StageIndicatorProps) {
   return (
     <span className="stage-indicator" data-stage={stage ?? "none"}>
+      <span className="stage-indicator__dot" />
       {stage ? STAGE_LABELS[stage] : "Not started"}
     </span>
   );
