@@ -57,10 +57,16 @@ export async function updateDealFollowUp(dealId: string, update: DealFollowUpUpd
 export async function searchBooking(params: BookingSearchParams): Promise<ZohoDeal | null> {
   if (params.bookingId) {
     const client = getZohoClient();
-    const response = await client.get("/Deals/search", {
-      params: { criteria: `(Booking_Id:equals:${params.bookingId})` },
-    });
-    const deal: ZohoDeal | undefined = response.data?.data?.[0];
+    const criteria = `(Booking_Id:equals:${params.bookingId})`;
+    console.log(`Searching Zoho Deals for ${criteria}`);
+
+    const response = await client.get("/Deals/search", { params: { criteria } });
+    const matches: ZohoDeal[] = response.data?.data ?? [];
+    console.log(
+      `Deals search returned ${matches.length} match(es): ${matches.map((d) => `${d.id}(Stage=${d.Stage}, Booking_Id=${d.Booking_Id})`).join(", ") || "(none)"}`
+    );
+
+    const deal = matches[0];
     return deal && deal.Stage === BOOKING_STAGE ? deal : null;
   }
 
