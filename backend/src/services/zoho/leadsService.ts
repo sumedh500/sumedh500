@@ -1,4 +1,5 @@
 import { getZohoClient } from "./zohoClient";
+import { normalizeIndianPhone } from "../../utils/phone";
 import type { CreateLeadInput } from "../../types/zoho";
 
 // Used by the New Lead stage (ARCHITECTURE.md §4: create_lead tool).
@@ -12,7 +13,10 @@ export async function createLead(input: CreateLeadInput): Promise<{ id: string }
   const payload = {
     Last_Name: lastName, // mandatory on the Leads module
     First_Name: firstName,
-    Phone: input.phone,
+    // Normalized so a Lead's phone lands in the same +91XXXXXXXXXX shape
+    // findContactByPhone's search expects, in case this person is looked
+    // up again later once converted to a Contact.
+    Phone: normalizeIndianPhone(input.phone),
     Email: input.email,
     City: input.city,
     Vehicle_Model: input.vehicleModel,

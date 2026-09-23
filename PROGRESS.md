@@ -236,3 +236,41 @@ phase's weight; all phases sum to 100%.
   none of this has a fallback if Redis is down, by design (that's the
   point of moving off the in-memory Map). See the test script in my reply
   for exact phone numbers/IDs to use from the Phase 2 seed data.
+
+- **Redis connection debugging (your live tests):** two rounds of fixes
+  to `redisClient.ts` based on real failures you hit — first a fail-fast
+  check + capped retries (instead of retrying/logging forever) for the
+  case of pointing `REDIS_URL` at an HTTP(S) URL by mistake, then
+  connection-lifecycle event logging (`connect`/`ready`/`reconnecting`)
+  plus a safe host/port/TLS printout, since `MaxRetriesPerRequestError`
+  itself carries zero information about *why* a command never got a
+  response. Root cause turned out to be Upstash's `redis-cli --tls -u
+  redis://...` snippet using a separate `--tls` flag for TLS, which
+  doesn't exist for a plain `REDIS_URL` string — needed `rediss://`
+  (double s) in the URL scheme itself for `ioredis` to enable TLS.
+
+- **Bug found via your Booked Vehicle live test:** searching by phone
+  `9820055667` returned "no booking found" even though it's Priya Iyer's
+  seeded number — because it's stored in Zoho as `+919820055667` and
+  Zoho's Phone-field search only supports `equals` (confirmed against
+  Zoho's own API docs — no `contains` operator exists for Phone fields),
+  so an exact-format mismatch is a silent false negative, not an error.
+  Fixed with `utils/phone.ts`'s `normalizeIndianPhone()`, applied in
+  `findContactByPhone` (the single choke point `search_deal`,
+  `search_booking`, and `create_case` all go through for phone lookups —
+  one fix covers all three) and in `createLead` on the write side, so
+  future data stays in the same canonical format. Verified the
+  normalization directly against 7 realistic input variations (with/
+  without `+91`, spaces, dashes, parens, leading trunk `0`) — all
+  collapse to the same `+91XXXXXXXXXX` value the seed data uses.
+
+- **Also found in that same test:** when no booking matched, the
+  assistant invented a fake fallback phone number and email
+  (`+91 22 1234 5678`, `sales@mahindradealer.com`) that don't exist
+  anywhere in the CRM or the system prompt — a real hallucination, not
+  just an unhelpful reply. The persona instructions already said "never
+  invent CRM data," but apparently that didn't read as covering fabricated
+  *contact* details. Strengthened `systemPrompt.ts`'s `PERSONA` to say so
+  explicitly. Not yet re-verified live (needs another real Groq call) —
+  worth specifically re-checking this exact "no booking found" case
+  again.
