@@ -19,14 +19,23 @@ export function ChatWindow() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isSending]);
 
-  async function handleSend(text: string) {
+  async function handleSend(text: string, demoHint?: string) {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setIsSending(true);
     setError(null);
 
     try {
       const response = await sendChatMessage(sessionId, text);
-      setMessages((prev) => [...prev, { role: "assistant", content: response.reply }]);
+      setMessages((prev) => {
+        const next: UiMessage[] = [...prev, { role: "assistant", content: response.reply }];
+        // Shown once, right after the first real reply, so it reads as
+        // "here's how to actually see this work" rather than interrupting
+        // the assistant's own answer.
+        if (demoHint) {
+          next.push({ role: "hint", content: demoHint });
+        }
+        return next;
+      });
       setStage(response.stage);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

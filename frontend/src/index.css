@@ -398,6 +398,35 @@ body {
   background: rgba(127, 127, 127, 0.12);
 }
 
+/* Demo hint — a frontend-only note, styled distinctly from real chat
+   bubbles so it reads as "app UI" rather than something the assistant
+   said. */
+.demo-hint {
+  align-self: center;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 92%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.demo-hint svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.demo-hint strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
 .chat-error {
   margin: 0 20px 12px;
   padding: 8px 12px;

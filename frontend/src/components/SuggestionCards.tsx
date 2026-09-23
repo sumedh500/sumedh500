@@ -4,6 +4,11 @@ interface Suggestion {
   icon: ReactElement;
   label: string;
   message: string;
+  // Shown once, after the first reply — the New Lead flow works with any
+  // input the visitor types, but the other 3 all do a real Zoho lookup, so
+  // without a seeded value to try, anyone other than whoever ran the seed
+  // script has no way to see the demo actually return data.
+  demoHint?: string;
 }
 
 const ICON_PROPS = {
@@ -37,6 +42,7 @@ const SUGGESTIONS: Suggestion[] = [
     ),
     label: "Check quotation status",
     message: "Can you check the status of my test drive or quotation?",
+    demoHint: "This looks up a real Zoho record — try phone 9820033445 (seeded test data, not a real customer).",
   },
   {
     icon: (
@@ -49,6 +55,8 @@ const SUGGESTIONS: Suggestion[] = [
     ),
     label: "Track my delivery",
     message: "I want to check the delivery status of my booking.",
+    demoHint:
+      "This looks up a real Zoho record — try phone 9820055667 or Booking ID BK-2024-00123 (seeded test data, not a real customer).",
   },
   {
     icon: (
@@ -58,11 +66,12 @@ const SUGGESTIONS: Suggestion[] = [
     ),
     label: "Book a service",
     message: "I'd like to book a service appointment for my vehicle.",
+    demoHint: "This looks up a real Zoho record — try phone 9820033445 (seeded test data, not a real customer).",
   },
 ];
 
 interface SuggestionCardsProps {
-  onSelect: (message: string) => void;
+  onSelect: (message: string, demoHint?: string) => void;
 }
 
 export function SuggestionCards({ onSelect }: SuggestionCardsProps) {
@@ -75,7 +84,7 @@ export function SuggestionCards({ onSelect }: SuggestionCardsProps) {
             key={suggestion.label}
             type="button"
             className="suggestion-card"
-            onClick={() => onSelect(suggestion.message)}
+            onClick={() => onSelect(suggestion.message, suggestion.demoHint)}
           >
             <span className="suggestion-card__icon">{suggestion.icon}</span>
             <span className="suggestion-card__label">{suggestion.label}</span>
