@@ -26,9 +26,35 @@ export async function findContactByPhone(phone: string): Promise<ZohoContact | n
   return contact;
 }
 
+// Every field ZohoDeal (types/zoho.ts) reads. Unlike the regular Get/Search
+// Records APIs (where `fields` is optional and full data comes back by
+// default), Zoho's "Get Related Records" API — which is what
+// GET /Contacts/{id}/Deals is — treats `fields` as mandatory. Omitting it
+// silently returns a stripped-down record missing Stage and every custom
+// field, which is exactly what caused search_booking (and search_deal's
+// phone branch) to report "not found" even once the Contact lookup itself
+// was correct.
+const DEAL_RELATED_LIST_FIELDS = [
+  "Deal_Name",
+  "Stage",
+  "Contact_Name",
+  "Follow_Up_Preference",
+  "VIN",
+  "Allocation_Stage",
+  "Payment_Link",
+  "Booking_Id",
+].join(",");
+
 // Standard "Deals" related list on a Contact record.
 export async function getDealsForContact(contactId: string): Promise<ZohoDeal[]> {
   const client = getZohoClient();
-  const response = await client.get(`/Contacts/${contactId}/Deals`);
-  return response.data?.data ?? [];
+  const response = await client.get(`/Contacts/${contactId}/Deals`, {
+    params: { fields: DEAL_RELATED_LIST_FIELDS },
+  });
+
+  const deals: ZohoDeal[] = response.data?.data ?? [];
+  console.log(
+    `Contact ${contactId} has ${deals.length} Deal(s): ${deals.map((d) => `${d.id}=${d.Stage}`).join(", ") || "(none)"}`
+  );
+  return deals;
 }

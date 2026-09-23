@@ -290,6 +290,25 @@ phase's weight; all phases sum to 100%.
   want `Booking_Id` non-empty as a second condition for production).
   All three places the old string appeared (`types/zoho.ts`,
   `bookingTools.ts`'s tool description/error text, both docs) now derive
-  from or reference the single constant. Not yet re-verified live —
-  should work immediately since the already-seeded Priya Iyer record's
-  real Zoho stage is already `Closed Won`, no re-seeding needed.
+  from or reference the single constant.
+
+- **Third bug in this same chain, found after the Contact lookup started
+  succeeding but the booking still didn't resolve**: `getDealsForContact`
+  (`GET /Contacts/{id}/Deals`) was returning Deal records stripped of
+  `Stage` and every custom field. Confirmed via Zoho's own API docs —
+  their "Get Related Records" endpoint treats the `fields` parameter as
+  **mandatory** (unlike the regular Get/Search Records endpoints we use
+  elsewhere, where it's optional and full data comes back by default);
+  omitting it silently returns a reduced record instead of erroring. Since
+  `searchBooking`'s phone branch filters on `deal.Stage === BOOKING_STAGE`,
+  every Deal fetched this way looked like it had no stage at all. Fixed
+  by explicitly requesting every field `ZohoDeal` reads via `fields=...`.
+  **This bug also silently affected Ongoing Pipeline's phone-based
+  `search_deal`** (same underlying function) — it wasn't caught yet only
+  because that flow hadn't been retested after the earlier fixes; the
+  returned `stage`/`followUpPreference` would have come back `null` even
+  for a real Deal. Added diagnostic logs to both `findContactByPhone` and
+  `getDealsForContact` (Contact found/not-found, and each Deal's id+Stage)
+  so this class of "found the record but the data came back empty" bug is
+  visible in the terminal immediately next time, not another guessing
+  round. Not yet re-verified live.
