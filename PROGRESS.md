@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 92% (Phases 1–5 complete, Phase 6.1 complete)**
+**Overall completion: 97% (Phases 1–6 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -38,10 +38,10 @@ phase's weight; all phases sum to 100%.
 
 ## Phase 6 — State management + end-to-end testing of all 4 scenarios (7%)
 - [x] 6.1 Redis session store wiring — 2%
-- [ ] 6.2 E2E test: New Lead scenario (via UI) — 1.25%
-- [ ] 6.3 E2E test: Ongoing Pipeline scenario — 1.25%
-- [ ] 6.4 E2E test: Booked Vehicle scenario — 1.25%
-- [ ] 6.5 E2E test: Post-Purchase scenario — 1.25%
+- [x] 6.2 E2E test: New Lead scenario (via UI) — 1.25%
+- [x] 6.3 E2E test: Ongoing Pipeline scenario — 1.25%
+- [x] 6.4 E2E test: Booked Vehicle scenario — 1.25%
+- [x] 6.5 E2E test: Post-Purchase scenario — 1.25%
 
 ## Phase 7 — Docs, architecture diagram, demo video prep (3%)
 - [ ] 7.1 README (setup + execution steps) — 1.5%
@@ -311,4 +311,16 @@ phase's weight; all phases sum to 100%.
   `getDealsForContact` (Contact found/not-found, and each Deal's id+Stage)
   so this class of "found the record but the data came back empty" bug is
   visible in the terminal immediately next time, not another guessing
-  round. Not yet re-verified live.
+  round.
+
+- **All 4 lifecycle stages confirmed working end-to-end via the real UI**
+  (New Lead, Ongoing Pipeline including `update_deal_followup`, Booked
+  Vehicle, Post-Purchase/Service) — Phase 6 complete. Getting here
+  surfaced and fixed five real bugs beyond the original Phase 3/4 build:
+  the deprecated Groq model, a reasoning-model token-budget issue in the
+  classifier, phone-format false negatives, the custom booking-stage
+  value silently not saving in a fresh Zoho org, and `fields` being
+  mandatory (not optional) on Zoho's Get Related Records endpoint. Every
+  one of them was found through actual live testing against real
+  Groq/Zoho, not caught by typecheck/lint/offline smoke tests — which is
+  exactly why this phase existed.
