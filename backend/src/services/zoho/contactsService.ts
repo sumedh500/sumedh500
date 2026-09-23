@@ -15,10 +15,15 @@ import type { ZohoContact, ZohoDeal } from "../../types/zoho";
 export async function findContactByPhone(phone: string): Promise<ZohoContact | null> {
   const client = getZohoClient();
   const normalized = normalizeIndianPhone(phone);
+  console.log(`Searching Zoho Contacts for Phone:equals:${normalized} (raw input: "${phone}")`);
+
   const response = await client.get("/Contacts/search", {
     params: { criteria: `(Phone:equals:${normalized})` },
   });
-  return response.data?.data?.[0] ?? null;
+
+  const contact = response.data?.data?.[0] ?? null;
+  console.log(contact ? `Found Contact ${contact.id}` : "No Contact matched.");
+  return contact;
 }
 
 // Standard "Deals" related list on a Contact record.
