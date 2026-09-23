@@ -1,6 +1,6 @@
 # Progress Tracker — Multistage AI Chat Agent
 
-**Overall completion: 97% (Phases 1–6 complete)**
+**Overall completion: 100% (Phases 1–7 complete)**
 
 Weights per your working agreement. Each phase's sub-tasks sum to that
 phase's weight; all phases sum to 100%.
@@ -44,9 +44,9 @@ phase's weight; all phases sum to 100%.
 - [x] 6.5 E2E test: Post-Purchase scenario — 1.25%
 
 ## Phase 7 — Docs, architecture diagram, demo video prep (3%)
-- [ ] 7.1 README (setup + execution steps) — 1.5%
-- [ ] 7.2 Architecture diagram (visual, exported image) — 1%
-- [ ] 7.3 Demo video prep notes (script/checklist) — 0.5%
+- [x] 7.1 README (setup + execution steps) — 1.5%
+- [x] 7.2 Architecture diagram (visual, exported image) — 1%
+- [x] 7.3 Demo video prep notes (script/checklist) — 0.5%
 
 ---
 
@@ -324,3 +324,37 @@ phase's weight; all phases sum to 100%.
   one of them was found through actual live testing against real
   Groq/Zoho, not caught by typecheck/lint/offline smoke tests — which is
   exactly why this phase existed.
+
+### Notes from Phase 7
+- **`README.md`** (repo root) — setup steps in the order they actually need
+  to happen (Zoho custom fields → Self Client/OAuth → env vars → Redis →
+  seed → run), plus a Troubleshooting section built directly from every
+  real error hit during Phase 6's live testing (`invalid_client`,
+  `invalid_code`, the Upstash REST-vs-native URL mixup, phone format
+  false negatives) rather than hypothetical ones.
+- **`docs/architecture-diagram.svg`** — hand-authored SVG (not a generated
+  image), so it stays crisp at any size and matches GitHub's light/dark
+  theme via an embedded `prefers-color-scheme` media query. Traces one
+  full chat turn: Browser → chatController → sessionService/Redis →
+  agentService's two Groq calls → toolRegistry → Zoho services → Zoho CRM,
+  with the optional Mongo audit-log branch shown but visually
+  de-emphasized (dashed border). Rendered and visually reviewed in both
+  light and dark mode via Playwright before committing — not just
+  eyeballed as raw markup.
+- **`docs/DEMO_VIDEO_CHECKLIST.md`** — a timed ~6-minute script covering
+  all 4 stages, with explicit "switch to Zoho and refresh" beats for the
+  three real-time CRM update moments you asked for (Lead created, Deal's
+  follow-up preference updated, Case created), plus a short "under the
+  hood" cut to the backend terminal to actually show the stage-classifier
+  log — since that's the only way to demonstrate tool-routing accuracy on
+  camera rather than just asserting it in narration.
+- `.env.example` finalized: `GROQ_MODEL` defaults to the still-supported
+  `openai/gpt-oss-120b` (not the deprecated model this project started
+  with), `REDIS_URL` documents the `rediss://` requirement for hosted
+  Redis, and the stray duplicate frontend section was removed (frontend
+  has its own `.env.example`).
+
+**All 7 phases complete.** Every phase was tested against the real thing
+it was built for — real Zoho org, real Groq API, real Redis, real browser
+— not just typechecked, which is how the real bugs listed across Phases
+2, 3, and 6 actually got found and fixed rather than shipped silently.

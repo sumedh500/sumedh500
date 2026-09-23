@@ -48,6 +48,9 @@ backend guarantees that operation only fires with valid, complete data.
                                                           Leads / Deals / Cases modules
 ```
 
+A cleaner rendered version of this same flow: `docs/architecture-diagram.svg`
+(also embedded in `README.md`).
+
 One HTTP round trip per user message. Everything the agent needs to keep
 across turns (chat history, which stage it's in, fields collected so far)
 lives in Redis, keyed by `sessionId`. The backend is stateless between
