@@ -3,6 +3,7 @@ import "dotenv/config";
 export interface AppConfig {
   port: number;
   nodeEnv: string;
+  corsOrigin: string;
   groq: {
     apiKey: string;
     model: string;
@@ -30,6 +31,10 @@ export function loadConfig(): AppConfig {
   return {
     port: Number(process.env.PORT ?? 4000),
     nodeEnv: process.env.NODE_ENV ?? "development",
+    // "*" (any origin) is fine for local dev; a real deployment should set
+    // this to the deployed frontend's exact origin, e.g.
+    // https://your-app.vercel.app — see DEPLOYMENT.md.
+    corsOrigin: process.env.CORS_ORIGIN ?? "*",
     groq: {
       apiKey: process.env.GROQ_API_KEY ?? "",
       // llama-3.3-70b-versatile was decommissioned by Groq (Aug 2026); this

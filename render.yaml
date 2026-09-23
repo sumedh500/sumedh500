@@ -1,0 +1,37 @@
+# Render Blueprint — deploys the backend as a web service.
+# In the Render dashboard: New -> Blueprint -> connect this repo. Render
+# reads this file automatically. Env vars marked sync: false are prompted
+# for in the dashboard rather than committed here — fill them in with the
+# same values from your local backend/.env. See DEPLOYMENT.md.
+services:
+  - type: web
+    name: chat-agent-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: REDIS_URL
+        sync: false
+      - key: SESSION_TTL_SECONDS
+        value: "1800"
+      - key: ZOHO_DC
+        sync: false
+      - key: ZOHO_CLIENT_ID
+        sync: false
+      - key: ZOHO_CLIENT_SECRET
+        sync: false
+      - key: ZOHO_REFRESH_TOKEN
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: MONGO_ENABLED
+        value: "false"

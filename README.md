@@ -207,3 +207,8 @@ See `ARCHITECTURE.md` for the full folder tree and design rationale.
 `docs/DEMO_VIDEO_CHECKLIST.md` has a timed script for a 5–7 minute demo
 covering all 4 stages plus showing each CRM write land in Zoho in real
 time.
+
+## Deploying
+
+`DEPLOYMENT.md` has step-by-step instructions for deploying the backend
+to Render and the frontend to Vercel (both free tier).

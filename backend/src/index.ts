@@ -7,7 +7,7 @@ import { errorHandler, requestLogger } from "./middleware";
 const config = loadConfig();
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: config.corsOrigin }));
 app.use(express.json());
 app.use(requestLogger);
 
